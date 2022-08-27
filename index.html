@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>ReactJS-Pomodoro Clock</title>
+        <meta name="description" content="ReactJS-Pomodoro Clock">
+        <meta name="author" content="Mseong">
+        <meta name="viewport" content="width=device-width">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+        <link rel="stylesheet" href="stylesheet/style.css">
+    </head>
+    <body>
+        <div id="ms"></div>
+        <script src="https://unpkg.com/react@16/umd/react.production.min.js" crossorigin></script>
+        <script src="https://unpkg.com/react-dom@16/umd/react-dom.production.min.js" crossorigin></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js" crossorigin></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.js" crossorigin></script>
+        <script src="https://unpkg.com/babel-standalone@6/babel.min.js" crossorigin></script>
+        <script type="text/babel">
+            function toMMSS (timeobject) {
+                let minute=timeobject.minute+'';
+                let second=timeobject.second+'';
+                if (timeobject.minute<10) minute="0"+timeobject.minute
+                if (timeobject.second<10) second="0"+timeobject.second
+                return {minute:minute,second:second}
+            }
+
+            class PomodoroClockApp extends React.Component {
+                constructor(props) {
+                    super(props);
+                    this.state={
+                    breakLength:5,
+                    sessionLength:25,
+                    currentSession:"Session",
+                    currentTimer:{minute:25,second:0},
+                    }
+                    
+                    this.handleClickIncrementDecrement=this.handleClickIncrementDecrement.bind(this);
+                    this.handleStartStop=this.handleStartStop.bind(this);
+                    this.handleReset=this.handleReset.bind(this);
+                    this.countdown=this.countdown.bind(this);
+                    
+                }
+
+                handleClickIncrementDecrement (e) {
+                    if (e.currentTarget.id==="break-increment" && this.state.breakLength<60) 
+                    if (!this.interval)
+                    this.setState(state=>({
+                        breakLength:state.breakLength+1,
+                    })
+                    )
+                    
+                    if (e.currentTarget.id==="break-decrement" && this.state.breakLength>1) 
+                    if (!this.interval)
+                    this.setState(state=>({
+                        breakLength:state.breakLength-1,
+                    })
+                    )
+
+                    if (e.currentTarget.id==="session-increment" && this.state.sessionLength<60) 
+                    if (!this.interval)
+                        this.setState(state=>({
+                        sessionLength:state.sessionLength+1,
+                        currentTimer:{minute:state.sessionLength+1,second:0}
+                    })
+                    )
+
+                    if (e.currentTarget.id==="session-decrement" && this.state.sessionLength>1) 
+                    if (!this.interval)
+                    this.setState(state=>({
+                        sessionLength:state.sessionLength-1,
+                        currentTimer:{minute:state.sessionLength-1,second:0}
+                    })
+                    )
+                }
+
+                handleStartStop() {
+                    if (this.interval) {
+                    clearInterval(this.interval);
+                    this.interval=null;
+                    } else {
+                    this.interval=setInterval(this.countdown,1000)
+                    }
+                }
+                handleReset() {
+                    if (this.interval) {
+                    clearInterval(this.interval);
+                    this.interval=null;
+                    }
+                    this.setState({
+                    breakLength:5,
+                    sessionLength:25,
+                    currentSession:"Session",
+                    currentTimer:{minute:25,second:0},
+                    })
+                }
+
+                countdown() {
+                    /*to calculate and render circle progress bar*/
+                    
+                    const element=document.getElementById("circle-progressbar");
+                    
+                    if (parseFloat(element.getAttribute("stroke-dashoffset"))<=0) 
+                    element.setAttribute("stroke-dashoffset",element.getAttribute("stroke-dasharray"))
+                    
+                    
+                    const interval=parseFloat(element.getAttribute("stroke-dashoffset"))/ (this.state.currentTimer.minute*60+this.state.currentTimer.second);
+                    let currentProgress=parseFloat(element.getAttribute("stroke-dashoffset"));
+                    
+                    element.setAttribute("stroke-dashoffset",currentProgress-interval+"");
+                    
+                    /*logic for main timer*/
+                    if (this.state.currentTimer.second===0 && this.state.currentTimer.minute>0) 
+                    this.setState(state=>({
+                    currentTimer:{minute:this.state.currentTimer.minute-1,second:59}
+                    })
+                    )
+                    else if (this.state.currentTimer.second===0 && this.state.currentTimer.minute===0)
+                    if (this.state.currentSession==="Session") {
+                        document.getElementById("beep").play();
+                        this.setState(state=>({
+                            currentSession:"Break",
+                            currentTimer:{minute:this.state.breakLength,second:0}
+                        })
+                        ) 
+                        }
+                        else {
+                            document.getElementById("beep").play();
+                            this.setState(state=>({
+                            currentSession:"Session",
+                            currentTimer:{minute:this.state.sessionLength,second:0}
+                            })
+                            )
+                        }
+                    
+                    else this.setState(state=>({
+                    currentTimer:{minute:this.state.currentTimer.minute,second:this.state.currentTimer.second-1}
+                    })
+                    )
+                }
+
+                render() {
+                    return (
+                    <div>
+                        <Timer currentSession={this.state.currentSession} currentTimer={this.state.currentTimer} handleStartStop={this.handleStartStop} handleReset={this.handleReset}/>
+                        <div className="modal fade" id="popup" tabIndex="-1">
+                        <div className="modal-dialog modal-dialog-custom">
+                            <div className="modal-content modal-content-custom">
+                            <div className="modal-header modal-header-custom">
+                                <h4 className="modal-title modal-title-custom">SETTINGS</h4>
+                            </div>
+                            <div className="modal-body">
+                                <Break breakLength={this.state.breakLength} handleClickIncrementDecrement={this.handleClickIncrementDecrement}/>
+                                <Session sessionLength={this.state.sessionLength} handleClickIncrementDecrement={this.handleClickIncrementDecrement}/>
+                            </div>
+                            <div className="modal-footer modal-footer-custom">
+                                <button className="dismiss" data-dismiss="modal">X</button>
+                            </div>
+                            </div>
+                        </div>
+                        </div>
+                        
+                    </div>
+                    )
+                }
+                }
+
+            function Break(props) {
+            return (
+                <div id="break-label" className="settings-label">
+                <h4>BREAK LENGTH</h4>
+                <div className="length">{props.breakLength}</div>
+                <button className="up" id="break-increment" onClick={props.handleClickIncrementDecrement}><i className="fa fa-arrow-up fa-3x"></i></button>
+                <button className="down" id="break-decrement" onClick={props.handleClickIncrementDecrement}><i className="fa fa-arrow-down fa-3x"></i></button>
+                </div>
+            )
+            }
+
+            function Session(props) {
+            return (
+                <div id="session-label" className="settings-label">
+                <h4>SESSION LENGTH</h4>
+                <div className="length">{props.sessionLength}</div>
+                <button className="up" id="session-increment" onClick={props.handleClickIncrementDecrement}><i className="fa fa-arrow-up fa-3x"></i></button>
+                <button className="down" id="session-decrement" onClick={props.handleClickIncrementDecrement}><i className="fa fa-arrow-down fa-3x"></i></button>
+                
+                </div>
+            )
+            }
+
+            function Timer(props) {
+            return (
+                <div id="timer-label" className="timer-label">
+                <h2>{props.currentSession}</h2>
+                <h1 id="timer-left" className="timer-left">{toMMSS(props.currentTimer).minute} : {toMMSS(props.currentTimer).second}</h1>
+                <svg className="circle">
+                    <circle cx="50%" cy="50%" r="45%" fill="#3AAFA9"></circle>
+                    <circle cx="50%" cy="50%" r="45%" stroke="#DEF2F1" strokeWidth="10px" fill="none"></circle>
+                    <circle id="circle-progressbar" cx="50%" cy="50%" r="45%" stroke="#17252A" strokeWidth="10px" fill="none" strokeDasharray="706.95" strokeDashoffset="706.95"></circle>
+                </svg>
+                <div className="shadow"></div>
+                <div className="button-container">
+                    <button id="start_stop" className="start-stop" onClick={props.handleStartStop}><i className="fa fa-play fa-2x"></i><i className="fa fa-pause fa-2x"></i></button>
+                    <button id="reset" onClick={props.handleReset} className="reset"><i className="fa fa-undo fa-2x"></i></button>
+                </div>
+                <button className="popup" data-toggle="modal" data-target="#popup"><i className="fa fa-cog fa-2x"></i></button>
+                <div className="signature"><small>CODED BY MSEONG</small></div>
+                <audio id="beep" src="http://www.peter-weinberg.com/files/1014/8073/6015/BeepSound.wav"></audio>
+                </div>
+            )
+            }
+
+            ReactDOM.render(<PomodoroClockApp/>,document.getElementById("ms"))
+        </script>
+    </body>
+</html>
