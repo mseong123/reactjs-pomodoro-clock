@@ -83,16 +83,22 @@
                     }
                 }
                 handleReset() {
+                    const element=document.getElementById("circle-progressbar");
+
                     if (this.interval) {
                     clearInterval(this.interval);
                     this.interval=null;
                     }
+
                     this.setState({
                     breakLength:5,
                     sessionLength:25,
                     currentSession:"Session",
                     currentTimer:{minute:25,second:0},
                     })
+
+                    element.setAttribute("stroke-dashoffset",element.getAttribute("stroke-dasharray"));
+
                 }
 
                 countdown() {
@@ -112,8 +118,8 @@
                     /*logic for main timer*/
                     if (this.state.currentTimer.second===0 && this.state.currentTimer.minute>0) 
                     this.setState(state=>({
-                    currentTimer:{minute:this.state.currentTimer.minute-1,second:59}
-                    })
+                        currentTimer:{minute:this.state.currentTimer.minute-1,second:59}
+                        })
                     )
                     else if (this.state.currentTimer.second===0 && this.state.currentTimer.minute===0)
                     if (this.state.currentSession==="Session") {
